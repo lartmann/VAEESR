@@ -1,0 +1,8 @@
+base_folder/build/
+base_folder/dist/
+base_folder/vaeesr.egg-info/
+base_folder/LICENSE
+base_folder/setup.py
+pyproject.toml
+base_folder/vaeesr/__pycache__/
+.DS_Store
