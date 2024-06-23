@@ -22,13 +22,9 @@ def create_dataset(
         ["c_0"]
         ),
     x_values = np.linspace(-1.0, 1.0, 50),
-    latent_dims=4, 
     max_tree_depth=6, 
     num_equation_samples = 10000, 
-    num_epochs = 500,
     batch_size = 50,
-    learning_rate = 0.001,
-    kl_weight = 0.0001,
     training_set_proportion = 0.8,
     inf_repacement = 1000,
     is_vae=True
@@ -42,10 +38,7 @@ def create_dataset(
         latent_dims (int): number of latent dimensions
         tree_depth (int): maximum depth of the equation trees
         num_equation_samples (int): number of equation samples to be generated
-        num_epochs (int): number of epochs for training
         batch_size (int): batch size for training
-        learning_rate (int): learning rate for training
-        kl_weight (int): weight of the KL divergence loss
         training_set_proportion (int): proportion of the dataset to be used for training
         inf_repacement (int): value to replace infinity in the dataset
         is_vae (int): boolean indicating if the model is a VAE
