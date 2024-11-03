@@ -57,7 +57,7 @@ def decode_latent_classify(model, equation_tree_dataset, z_list, classes):
     
     return z_decoded_equations, z_decoded_constants
 
-def generate_values(equation, constant, is_function, is_operator, is_variable, is_constant, infix=None):
+def generate_values(equation, constant, is_function, is_operator, is_variable, is_constant, x_values, infix=None):
     #is_constant = lambda x: x in ["c_1"]
 
     constant = float(constant)
@@ -85,7 +85,7 @@ def generate_values(equation, constant, is_function, is_operator, is_variable, i
         instantiated_equation = instantiate_constants(equation_tree, lambda: constant)
         # print(f"Instantiated equation: {instantiated_equation}")
         # evaluate the equation at 50 equally spaced points between -1 and 1        
-        x_1 = np.linspace(-1, 1, 50)
+        x_1 = x_values
         input_df = pd.DataFrame({"x_1": x_1.tolist()})
         # get f(x) values
         y = instantiated_equation.evaluate(input_df).astype(float)
@@ -97,7 +97,7 @@ def generate_values(equation, constant, is_function, is_operator, is_variable, i
     except Exception as e:
         try: 
             x = symbols('x')
-            x_1 = np.linspace(-1, 1, 50)
+            x_1 = x_values
             input_df = pd.DataFrame({"x_1": x_1.tolist()})
             infix = prefix_to_infix(equation_prefix, is_function, is_operator)
             infix = infix.replace("X", "x").replace("c_0", str(constant))

@@ -49,7 +49,7 @@ def evaluation(df_results, equation_tree_dataset, max_len, classes):
         "Number of equations": len(x_batches_n),
     }
 
-def evaluate_sampling(samples, autoencoder, dataset, classes, latent_dims, spaces):
+def evaluate_sampling(samples, autoencoder, dataset, classes, latent_dims, spaces, x_values):
     is_function, is_operator, is_variable, is_constant = mapping_from_spaces(spaces)
     results_mcmc = []
     # take just the mean of the samples
@@ -82,9 +82,9 @@ def evaluate_sampling(samples, autoencoder, dataset, classes, latent_dims, space
     random_constant = random_dec[1][0][0][0]
 
     #print(observed_data)
-    v_mean = generate_values(result_equation, result_constant, is_function, is_operator, is_variable, is_constant)
-    v_sample = generate_values(sampled_equation, sampled_constant, is_function, is_operator, is_variable, is_constant)
-    v_random = generate_values(random_equation, random_constant, is_function, is_operator, is_variable, is_constant)
+    v_mean = generate_values(result_equation, result_constant, is_function, is_operator, is_variable, is_constant, x_values)
+    v_sample = generate_values(sampled_equation, sampled_constant, is_function, is_operator, is_variable, is_constant, x_values)
+    v_random = generate_values(random_equation, random_constant, is_function, is_operator, is_variable, is_constant, x_values)
     return (result_equation, result_constant,v_mean), (sampled_equation, sampled_constant, v_sample), (random_equation, random_constant, v_random)
 
 
@@ -321,8 +321,6 @@ def evaluate_different_models(d, batch_size, training_set_proportion, units, num
             'latent dims': units, 
             #'correlation_cor': float(df_results['correlation_cor']), 
             'correlation_dis' : float(df_results['correlation_dis']),
-            #'correlation_dis reonstructed equations': distance_reconstructed_equations(model, d, test_data, kl_weight, is_vae)[0],
-            #'valid reconstructed equations': distance_reconstructed_equations(model, d, test_data, kl_weight, is_vae)[1],
             'correlation_cor last 10 epochs': np.sum(correlations_cor[-10:]) / 10, 
             'correlation_dis last 10 epochs': np.sum(correlations_dis[-10:]) / 10, 
             'accuracy (individual)':results['accuracy (individual)'], 
@@ -361,44 +359,3 @@ def evaluate_different_models(d, batch_size, training_set_proportion, units, num
             
     #except Exception as e:
     #    print(e)
-    
-def distance_reconstructed_equations(model, dataset, test_data, kl_weight, is_vae):
-    model.eval()
-    embedding = []
-    recon_equations = []
-    recon_constants = []
-    with torch.no_grad():
-        for test_equations_batch, constant_list, values_batch in test_data:
-            # constant_list = constant_list.unsqueeze(1).float()
-            # Forward pass
-            # recon_batch, mean, logvar = myvae(test_equations_batch)
-            if not is_vae:
-                (recon_batch_syntax, recon_batch_constants), z = model(
-                    test_equations_batch, constant_list
-                )
-            else:
-                (recon_batch_syntax, recon_batch_constants), z, mean, logvar = model(
-                    test_equations_batch, constant_list
-                )
-
-            embedding += z.tolist()
-            recon_equations += recon_batch_syntax
-            recon_constants += recon_batch_constants
-    # instantiate constant randomly
-    y = []
-    z = []
-    recon_equations = np.array([x.detach().numpy() for x in recon_equations])
-    recon_equations = np.argmax(recon_equations, axis=2)
-    for i in range(len(recon_equations)):
-        prefix_eq = dataset.decode_equation(recon_equations[i])
-        result = generate_values(prefix_eq, recon_constants[i][0])
-        if result != (None,):
-            y.append(result[1])
-            z.append(embedding[i])
-    y = torch.tensor(y)
-    z = torch.tensor(z)
-    if len(y) > 0:
-        correlation = correlation_coeff(y,z)[1]
-    else:
-        correlation = 0
-    return float(correlation), len(y)

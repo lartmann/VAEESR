@@ -99,7 +99,7 @@ def create_autoencoder(
         autoencoder_equations, df_results = training_AE_C(train_loader, test_loader, latent_dims, unique_symbols, num_epochs, learning_rate, test_size, max_len, classes, 1.0)
     return autoencoder_equations, df_results
     
-def perform_MCMC(autoencoder_equations, observed_data, latent_dims, dataset, classes, spaces, num_samples=1000, num_chains=2, warmup_steps=200): 
+def perform_MCMC(autoencoder_equations, observed_data, latent_dims, dataset, classes, spaces, x_values, num_samples=1000, num_chains=2, warmup_steps=200): 
     """
     Function to perform MCMC sampling
 
@@ -109,7 +109,8 @@ def perform_MCMC(autoencoder_equations, observed_data, latent_dims, dataset, cla
         latent_dims (int): number of latent dimensions
         dataset (list): list of equations
         classes (list): list of classes
-        mapping (tuple): tuple of functions to map the equations
+        spaces (tuple): tuple of functions to map the equations
+        x_values (numpy.array): numpy array of values to be used as input to the equations
         num_samples (int): number of samples to be generated
 
 
@@ -121,13 +122,13 @@ def perform_MCMC(autoencoder_equations, observed_data, latent_dims, dataset, cla
 
     mcmc = MCMC(nuts_kernel, num_samples=num_samples, warmup_steps=warmup_steps, num_chains=num_chains)
 
-    mcmc.run(observed_data, latent_dims, autoencoder_equations, dataset, classes, spaces)
+    mcmc.run(observed_data, latent_dims, autoencoder_equations, dataset, classes, spaces, x_values)
 
     samples = mcmc.get_samples()
     return samples, mcmc
 
 
-def probabilistic_model(data, latent_dims, autoencoder, dataset, classes, spaces):
+def probabilistic_model(data, latent_dims, autoencoder, dataset, classes, spaces, x_values):
     mapping = mapping_from_spaces(spaces)
 
     latent_variables = []
@@ -141,7 +142,7 @@ def probabilistic_model(data, latent_dims, autoencoder, dataset, classes, spaces
     
 
     try:
-        values = generate_values(equations[0], constants[0][0][0], mapping[0], mapping[1], mapping[2], mapping[3])[1]
+        values = generate_values(equations[0], constants[0][0][0], mapping[0], mapping[1], mapping[2], mapping[3], x_values)[1]
         values = torch.nan_to_num(torch.tensor(values, dtype=torch.float32))
     except:
         # TODO handle nan values better
