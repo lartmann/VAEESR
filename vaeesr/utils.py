@@ -20,7 +20,7 @@ import pandas as pd
 
 
 
-def try_infix(equation, constant):
+def try_infix(equation, constant, is_function, is_operator):
     if type(constant) == list:
         constant = constant[0]
     try: 
